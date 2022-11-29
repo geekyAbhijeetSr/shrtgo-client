@@ -94,7 +94,7 @@ function Shortener() {
 						textAlign: 'center',
 						width: {
 							xs: '100%',
-							sm: '75%',
+							sm: '55%',
 						},
 					}}
 				>
@@ -135,11 +135,15 @@ function Shortener() {
 							<Typography
 								color={theme.palette.grey[800]}
 								component='h5'
-								variant='h5'
+								variant={smDownMatches ? 'subtitle1' : 'h6'}
 							>
 								{srtLink.shortUrl}
 							</Typography>
-							<Typography color='primary' component='h5' variant='h5'>
+							<Typography
+								color='primary'
+								component='h5'
+								variant={smDownMatches ? 'subtitle1' : 'h6'}
+							>
 								{!copied ? (
 									<Tooltip title='Copy'>
 										<ContentCopy />
@@ -151,12 +155,12 @@ function Shortener() {
 								)}
 							</Typography>
 						</Stack>
-						<Typography component='p' variant='body' color='primary'>
+						<Typography component='p' variant='body2' color='primary'>
 							{srtLink.hostname}
 						</Typography>
 						<Typography
 							component='p'
-							variant='body'
+							variant='body2'
 							color={theme.palette.grey[700]}
 							sx={{
 								display: 'inline-block',
