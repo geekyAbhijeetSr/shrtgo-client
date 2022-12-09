@@ -7,7 +7,7 @@ import {
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
-import loading from '../../assets/loading.svg'
+import Loader from '../Loader/Loader'
 
 function Expander() {
 	const theme = useTheme()
@@ -89,7 +89,7 @@ function Expander() {
 
 			{expanding ? (
 				<Box>
-					<img src={loading} alt='' />
+					<Loader />
 					<Typography align='center'>Expanding...</Typography>
 				</Box>
 			) : (

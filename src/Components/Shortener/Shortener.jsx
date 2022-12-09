@@ -10,7 +10,7 @@ import {
 import { useEffect, useState } from 'react'
 import { ContentCopy, Done } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
-import loading from '../../assets/loading.svg'
+import Loader from '../Loader/Loader'
 
 function Shortener() {
 	const theme = useTheme()
@@ -94,7 +94,7 @@ function Shortener() {
 
 			{shortening ? (
 				<Box>
-					<img src={loading} alt='' />
+					<Loader />
 					<Typography align='center'>Shortening...</Typography>
 				</Box>
 			) : (
