@@ -10,6 +10,7 @@ import {
 import { useEffect, useState } from 'react'
 import { ContentCopy, Done } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
+import loading from '../../assets/loading.svg'
 
 function Shortener() {
 	const theme = useTheme()
@@ -18,29 +19,33 @@ function Shortener() {
 	const [inputCache, setInputCache] = useState('')
 	const [srtLink, setSrtLink] = useState()
 	const [copied, setCopied] = useState(false)
+	const [shortening, setShortening] = useState(false)
 
 	const submit = async e => {
 		e.preventDefault()
+		if (inputLink.length === 0 || shortening) return
+		setShortening(true)
+		;(async () => {
+			const response = await fetch(
+				`${process.env.REACT_APP_API_URL}/api/create`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ url: inputLink }),
+				}
+			)
 
-		if (inputLink.length === 0) return
-		
-		const response = await fetch(
-			`${process.env.REACT_APP_API_URL}/api/create`,
-			{
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({ url: inputLink }),
+			if (response.ok) {
+				const link = await response.json()
+				setSrtLink(link)
+				setInputCache(inputLink)
+				setInputLink('')
 			}
-		)
 
-		if (response.ok) {
-			const link = await response.json()
-			setSrtLink(link)
-			setInputCache(inputLink)
-			setInputLink('')
-		}
+			setShortening(false)
+		})()
 	}
 
 	useEffect(() => {
@@ -87,92 +92,100 @@ function Shortener() {
 				</Button>
 			</form>
 
-			{srtLink && (
-				<Box
-					sx={{
-						marginTop: '2rem',
-						textAlign: 'center',
-						width: {
-							xs: '100%',
-							sm: '55%',
-						},
-					}}
-				>
-					<Typography
-						sx={{
-							marginBottom: '1rem',
-						}}
-						component='p'
-						variant='h5'
-						color='primary'
-					>
-						Your shortened URL
-					</Typography>
+			{shortening ? (
+				<Box>
+					<img src={loading} alt='' />
+					<Typography align='center'>Shortening...</Typography>
+				</Box>
+			) : (
+				srtLink && (
 					<Box
-						onClick={() => {
-							navigator.clipboard.writeText(srtLink.shortUrl)
-							setCopied(true)
-						}}
 						sx={{
-							border: 1,
-							borderColor: theme.palette.primary.main,
+							marginTop: '2rem',
 							textAlign: 'center',
-							padding: smDownMatches ? '1rem' : '2rem',
-							borderRadius: 1,
-							cursor: 'pointer',
-							height: 'auto',
+							width: {
+								xs: '100%',
+								sm: '55%',
+							},
 						}}
 					>
-						<Stack
-							direction='row'
-							spacing={smDownMatches ? 1 : 2}
-							justifyContent='center'
-							alignItems='center'
+						<Typography
 							sx={{
 								marginBottom: '1rem',
 							}}
-						>
-							<Typography
-								color={theme.palette.grey[800]}
-								component='h5'
-								variant={smDownMatches ? 'subtitle1' : 'h6'}
-							>
-								{srtLink.shortUrl}
-							</Typography>
-							<Typography
-								color='primary'
-								component='h5'
-								variant={smDownMatches ? 'subtitle1' : 'h6'}
-							>
-								{!copied ? (
-									<Tooltip title='Copy'>
-										<ContentCopy />
-									</Tooltip>
-								) : (
-									<Tooltip title='Copied'>
-										<Done />
-									</Tooltip>
-								)}
-							</Typography>
-						</Stack>
-						<Typography component='p' variant='body2' color='primary'>
-							{srtLink.hostname}
-						</Typography>
-						<Typography
 							component='p'
-							variant='body2'
-							color={theme.palette.grey[700]}
+							variant='h5'
+							color='primary'
+						>
+							Your shortened URL
+						</Typography>
+						<Box
+							onClick={() => {
+								navigator.clipboard.writeText(srtLink.shortUrl)
+								setCopied(true)
+							}}
 							sx={{
-								display: 'inline-block',
-								wordBreak: 'break-word',
+								border: 1,
+								borderColor: theme.palette.primary.main,
+								textAlign: 'center',
+								padding: smDownMatches ? '1rem' : '2rem',
+								borderRadius: 1,
+								cursor: 'pointer',
+								height: 'auto',
 							}}
 						>
-							{/* {textAbstract(inputCache, 60)} */}
-							{inputCache}
-						</Typography>
+							<Stack
+								direction='row'
+								spacing={smDownMatches ? 1 : 2}
+								justifyContent='center'
+								alignItems='center'
+								sx={{
+									marginBottom: '1rem',
+								}}
+							>
+								<Typography
+									color={theme.palette.grey[800]}
+									component='h5'
+									variant={smDownMatches ? 'h6' : 'h5'}
+								>
+									{srtLink.shortUrl}
+								</Typography>
+								<Typography
+									color='primary'
+									component='h5'
+									variant={smDownMatches ? 'h6' : 'h5'}
+								>
+									{!copied ? (
+										<Tooltip title='Copy'>
+											<ContentCopy />
+										</Tooltip>
+									) : (
+										<Tooltip title='Copied'>
+											<Done />
+										</Tooltip>
+									)}
+								</Typography>
+							</Stack>
+							<Typography component='p' variant='body2' color='primary'>
+								{srtLink.hostname}
+							</Typography>
+							<Typography
+								component='p'
+								variant='body2'
+								color={theme.palette.grey[700]}
+								sx={{
+									display: 'inline-block',
+									wordBreak: 'break-word',
+								}}
+							>
+								{/* {textAbstract(inputCache, 60)} */}
+								{inputCache}
+							</Typography>
+						</Box>
 					</Box>
-				</Box>
+				)
 			)}
+
 			{/* <pre>{JSON.stringify(srtLink, undefined, 2)}</pre> */}
 		</Box>
 	)

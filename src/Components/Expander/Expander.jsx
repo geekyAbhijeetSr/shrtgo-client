@@ -7,6 +7,7 @@ import {
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
+import loading from '../../assets/loading.svg'
 
 function Expander() {
 	const theme = useTheme()
@@ -14,28 +15,32 @@ function Expander() {
 	const [inputLink, setInputLink] = useState('')
 	const [lngLink, setLngLink] = useState('')
 	const [copied, setCopied] = useState(false)
+	const [expanding, setExpanding] = useState(false)
 
-	const submit = async e => {
+	const submit = e => {
 		e.preventDefault()
+		if (inputLink.length === 0 || expanding) return
+		setExpanding(true)
+		;(async () => {
+			const response = await fetch(
+				`${process.env.REACT_APP_API_URL}/api/expand`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ shortUrl: inputLink }),
+				}
+			)
 
-		if (inputLink.length === 0) return
-
-		const response = await fetch(
-			`${process.env.REACT_APP_API_URL}/api/expand`,
-			{
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({ shortUrl: inputLink }),
+			if (response.ok) {
+				const link = await response.json()
+				setLngLink(link)
+				setInputLink('')
 			}
-		)
 
-		if (response.ok) {
-			const link = await response.json()
-			setLngLink(link)
-			setInputLink('')
-		}
+			setExpanding(false)
+		})()
 	}
 
 	useEffect(() => {
@@ -82,58 +87,70 @@ function Expander() {
 				</Button>
 			</form>
 
-			{lngLink && (
-				<Box
-					sx={{
-						marginTop: '2rem',
-						textAlign: 'center',
-						width: {
-							xs: '100%',
-							sm: '75%',
-						},
-					}}
-				>
-					<Typography
-						sx={{
-							marginBottom: '1rem',
-						}}
-						component='p'
-						variant='h5'
-						color='primary'
-					>
-						Original URL
-					</Typography>
+			{expanding ? (
+				<Box>
+					<img src={loading} alt='' />
+					<Typography align='center'>Expanding...</Typography>
+				</Box>
+			) : (
+				lngLink && (
 					<Box
 						sx={{
-							border: 1,
-							borderColor: theme.palette.primary.main,
+							marginTop: '2rem',
 							textAlign: 'center',
-							width: '100%',
-							padding: smDownMatches ? '1rem' : '2rem',
-							borderRadius: 1,
+							width: {
+								xs: '100%',
+								sm: '75%',
+							},
 						}}
 					>
-						<Typography component='p' variant='body' color='primary' sx={{
-							marginBottom: '1rem'
-						}}>
-							{lngLink.hostname}
-						</Typography>
 						<Typography
-							// color={theme.palette.grey[800]}
-							component='a'
-							variant='h5'
-							href={lngLink.url}
-							target='blank'
-							rel='noreferrer noopener'
 							sx={{
-								display: 'inline-block',
-								wordBreak: 'break-word',
+								marginBottom: '1rem',
+							}}
+							component='p'
+							variant='h5'
+							color='primary'
+						>
+							Original URL
+						</Typography>
+						<Box
+							sx={{
+								border: 1,
+								borderColor: theme.palette.primary.main,
+								textAlign: 'center',
+								width: '100%',
+								padding: smDownMatches ? '1rem' : '2rem',
+								borderRadius: 1,
 							}}
 						>
-							{lngLink.url.split('//')[1].replace('www.', '')}
-						</Typography>
+							<Typography
+								component='p'
+								variant='body'
+								color='primary'
+								sx={{
+									marginBottom: '1rem',
+								}}
+							>
+								{lngLink.hostname}
+							</Typography>
+							<Typography
+								// color={theme.palette.grey[800]}
+								component='a'
+								variant='h5'
+								href={lngLink.url}
+								target='blank'
+								rel='noreferrer noopener'
+								sx={{
+									display: 'inline-block',
+									wordBreak: 'break-word',
+								}}
+							>
+								{lngLink.url.split('//')[1].replace('www.', '')}
+							</Typography>
+						</Box>
 					</Box>
-				</Box>
+				)
 			)}
 			{/* <pre>{JSON.stringify(srtLink, undefined, 2)}</pre> */}
 		</Box>
